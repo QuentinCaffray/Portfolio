@@ -15,34 +15,55 @@ const CRAYON_COLORS: { id: CrayonColorId; label: string; fill: string; swatch: s
 ];
 
 /** Couleur des traits d'amorce laissés sur le tableau au chargement. */
-const SEED_FILL = CRAYON_COLORS[0].fill;
+const SEED_FILL = "rgba(190,46,38,0.32)";
+
+/** Un carreau isolé, utilisé comme accent ponctuel. */
+function dot(x: number, y: number): number[] {
+  return [x, y, x, y];
+}
 
 /**
- * Quelques traits de crayon rouge posés au chargement pour donner du relief,
- * sans surcharger : des annotations dans les marges de l'accueil (repère de coin
- * près du titre, slash vers le badge CDI, trait le long des fiches, slash bas).
- * Coordonnées document. Sans marge (petit écran), on n'amorce rien.
+ * Amorce du tableau : une composition abstraite de traits rouges dans les marges
+ * de l'accueil. Vocabulaire orthogonal (colonnes, tirets, angles, carreaux
+ * isolés) + une seule grande diagonale comme accent — net à la maille de 26px,
+ * là où un faisceau de diagonales se souderait en aplat. Chaque élément reste
+ * détaché. Tout tient dans les marges (coordonnées document) ; rien si la marge
+ * est trop étroite (petit écran).
  */
 function seedStrokes(viewportWidth: number): number[][] {
   const contentWidth = Math.min(1180, viewportWidth - 40);
   const sideMargin = (viewportWidth - contentWidth) / 2;
-
-  if (sideMargin < 130) {
+  if (sideMargin < 80) {
     return [];
   }
 
-  const contentRight = viewportWidth - sideMargin;
-  const leftBand = sideMargin * 0.45;
+  const band = Math.min(sideMargin - 12, 210); // largeur exploitable de marge
+  const left = 16; // origine dans la marge gauche
+  const right = viewportWidth - 16 - band; // origine dans la marge droite
+
   return [
-    // repère de coin en marge du titre (façon trait de coupe)
-    [leftBand, 178, leftBand + 52, 178],
-    [leftBand, 178, leftBand, 288],
-    // slash appuyé dans la marge haut-droite, près du badge CDI
-    [contentRight + 6, 152, contentRight + 78, 104],
-    // trait vertical calme le long des fiches
-    [leftBand + 16, 706, leftBand + 16, 894],
-    // slash bas, en marge de la section "à propos"
-    [contentRight + 16, 1772, contentRight + 82, 1722],
+    // ————— marge gauche : colonne + tirets, angle, accents —————
+    [left + band * 0.5, 150, left + band * 0.5, 452],
+    [left + band * 0.16, 178, left + band * 0.5, 178],
+    [left + band * 0.5, 426, left + band * 0.9, 426],
+    [left + band * 0.12, 648, left + band * 0.12, 726],
+    [left + band * 0.12, 726, left + band * 0.56, 726],
+    dot(left + band * 0.82, 258),
+    dot(left + band * 0.36, 556),
+    dot(left + band * 0.66, 832),
+    // ————— marge droite : diagonale accent, colonne + tiret, angle, accents —————
+    [right + band * 0.9, 150, right + band * 0.06, 470],
+    [right + band * 0.34, 566, right + band * 0.34, 858],
+    [right + band * 0.34, 592, right + band * 0.82, 592],
+    [right + band * 0.5, 1044, right + band, 1044],
+    [right + band * 0.5, 1044, right + band * 0.5, 1120],
+    dot(right + band * 0.68, 320),
+    dot(right + band * 0.14, 700),
+    dot(right + band * 0.86, 1180),
+    // ————— bas, en marge de « à propos » —————
+    [right + band * 0.36, 1712, right + band * 0.36, 1900],
+    [right + band * 0.36, 1900, right + band * 0.82, 1900],
+    dot(right + band * 0.14, 1788),
   ];
 }
 
