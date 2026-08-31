@@ -5,7 +5,7 @@ sans backend ni authentification.
 
 Trois applications en service y sont présentées : **La Popote** (caisse commune
 d'une brigade de gendarmerie), **The Crew** (pilotage d'une boutique Orange),
-**DPE simplifié** (vulgarisation de rapports de diagnostic énergétique par IA).
+**DPE simplifier** (vulgarisation de rapports de diagnostic énergétique par IA).
 
 ## Stack
 

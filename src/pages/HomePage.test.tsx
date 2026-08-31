@@ -18,7 +18,7 @@ describe("HomePage", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: /Je construis des outils que des gens utilisent tous les jours/i,
+        name: /Des applications métier, livrées en production, en usage réel/i,
       }),
     ).toBeInTheDocument();
   });

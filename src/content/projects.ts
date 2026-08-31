@@ -1,7 +1,7 @@
 /**
  * Source de vérité des trois projets présentés.
  * Copy reprise du handoff (design_handoff_portfolio/README.md) pour La Popote ;
- * The Crew et DPE simplifié rédigés sur le même modèle à partir de leurs
+ * The Crew et DPE simplifier rédigés sur le même modèle à partir de leurs
  * PRD / README respectifs.
  *
  * Les champs `figures` marqués `todo: true` sont des emplacements à compléter
@@ -211,7 +211,7 @@ const theCrew: Project = {
 const dpeSimplifie: Project = {
   slug: "dpe-simplifie",
   order: "03",
-  name: "DPE simplifié",
+  name: "DPE simplifier",
   statusLabel: "Diagnostic immobilier",
   statusAccent: false,
   cardColor: "slate",
@@ -219,7 +219,7 @@ const dpeSimplifie: Project = {
   summary:
     "On dépose le PDF sorti du logiciel métier, l'IA le retravaille, et il ressort un rapport clair qu'un propriétaire lit sans traduction.",
   intro:
-    "Un rapport de diagnostic de performance énergétique, c'est trente à quarante pages de jargon réglementaire qu'un propriétaire ne lit jamais. DPE simplifié prend le PDF sorti du logiciel métier, en extrait le texte, le fait réécrire en français clair par un modèle de langage, puis regénère un PDF stylisé prêt à envoyer au client.",
+    "Un rapport de diagnostic de performance énergétique, c'est trente à quarante pages de jargon réglementaire qu'un propriétaire ne lit jamais. DPE simplifier prend le PDF sorti du logiciel métier, en extrait le texte, le fait réécrire en français clair par un modèle de langage, puis regénère un PDF stylisé prêt à envoyer au client.",
   cardMeta: {
     contexte: "Diagnostiqueur indépendant",
     role: "Conception + dev",
@@ -250,12 +250,12 @@ const dpeSimplifie: Project = {
   screenshots: {
     card: {
       src: "/screenshots/dpe-upload.png",
-      alt: "DPE simplifié : un PDF de diagnostic vient d'être déposé, prêt à être traité.",
+      alt: "DPE simplifier : un PDF de diagnostic vient d'être déposé, prêt à être traité.",
       caption: "Dépôt du diagnostic",
     },
     demande: {
       src: "/screenshots/dpe-app.png",
-      alt: "Écran d'accueil de DPE simplifié : zone de dépôt du PDF et les trois étapes du pipeline.",
+      alt: "Écran d'accueil de DPE simplifier : zone de dépôt du PDF et les trois étapes du pipeline.",
       caption: "Extraction, vulgarisation, génération",
     },
     change: {

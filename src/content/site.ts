@@ -8,12 +8,12 @@ export const site = {
   role: "Développeur full stack",
   heroKicker: "Développeur full stack · JavaScript / React",
   heroKickerShort: "Dév. full stack · JS / React",
-  heroTitle: ["Je construis des outils", "que des gens utilisent", "tous les jours."],
-  heroTitleFlat: "Je construis des outils que des gens utilisent tous les jours.",
+  heroTitle: ["Des applications métier,", "livrées en production,", "en usage réel."],
+  heroTitleFlat: "Des applications métier, livrées en production, en usage réel.",
   intro:
-    "Trois applications en service : une caisse commune de brigade, un pilotage de boutique, un rapport de diagnostic énergétique enfin lisible. Conçues vite, avec l'IA dans la boucle, puis mises à l'épreuve du terrain.",
+    "Trois applications en service : une caisse commune de brigade, un pilotage de boutique, un rapport de diagnostic énergétique enfin lisible. Livrées rapidement, l'IA en accélérateur, affinées ensuite au contact des utilisateurs.",
   editorialNote:
-    "Aucune de ces applications n'était un exercice. Les trois tournent chez de vrais utilisateurs.",
+    "Les trois applications sont déployées et utilisées au quotidien.",
   availability: "Ouvert aux opportunités CDI",
   heroFigures: [
     { value: "3", label: "apps en service" },
@@ -24,7 +24,7 @@ export const site = {
     {
       step: "01 — Cadrer",
       title: "Le besoin, sur place",
-      body: "Je regarde comment les gens font aujourd'hui, carnet et tableur compris, avant d'écrire une ligne.",
+      body: "J'observe les méthodes de travail en place, tableurs et outils détournés compris, avant d'écrire la moindre ligne de code.",
     },
     {
       step: "02 — Livrer vite",
@@ -38,13 +38,13 @@ export const site = {
     },
   ],
   about:
-    "Je pars d'un besoin réel, je livre une première version en quelques jours, puis je la corrige avec ceux qui s'en servent. L'IA me sert d'accélérateur sur le code et l'exploration : elle raccourcit les allers-retours, elle ne décide pas de l'architecture.",
+    "Chaque projet part d'un besoin réel, cadré avec ses futurs utilisateurs. Je livre une première version exploitable, puis je l'affine avec eux jusqu'à ce qu'elle s'installe dans leur travail. L'IA me sert d'accélérateur sur le code et l'exploration ; le périmètre et l'architecture restent mes décisions.",
   stack: [
     { name: "React · TypeScript", level: "quotidien" },
     { name: "Node · API REST", level: "quotidien" },
     { name: "PostgreSQL · Prisma", level: "à l'aise" },
     { name: "Docker · déploiement", level: "à l'aise" },
-    { name: "Outils IA", level: "dans la boucle" },
+    { name: "Outils IA", level: "quotidien" },
   ],
   contact: {
     phoneDisplay: "06 09 97 52 44",
