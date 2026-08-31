@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
+import { useLocation } from "react-router-dom";
 import { cellKey, cellsOnSegment, GRID_CELL } from "@/lib/paperGrid";
 
 type CrayonColorId = "rouge" | "terracotta" | "sauge" | "ardoise" | "ocre" | "encre";
@@ -83,13 +84,12 @@ function cornerBracket(x: number, y: number, size: number, hx: 1 | -1, hy: 1 | -
 }
 
 /**
- * Amorce du tableau : des annotations rouges qui commentent la page plutôt que
- * de la décorer au hasard. Mesurées sur le DOM réel (donc justes à toute
+ * Amorce de l'accueil : des annotations rouges qui commentent la page plutôt
+ * que de la décorer au hasard. Mesurées sur le DOM réel (donc justes à toute
  * largeur) : la ligne qui sépare le hero des fiches, le soulignage des libellés
  * de section, des crochets qui cadrent le badge de dispo et la rangée de fiches.
- * Éphémère : repart vierge au rechargement.
  */
-function seedStrokes(): number[][] {
+function seedHomeStrokes(): number[][] {
   const hero = document.querySelector("main > section");
   const heading = document.querySelector("h1");
   if (!hero || !heading) {
@@ -142,6 +142,57 @@ function seedStrokes(): number[][] {
   return strokes;
 }
 
+/**
+ * Amorce d'une fiche projet : même langage graphique que l'accueil, mais calé
+ * sur les éléments de cette page — la fiche d'en-tête cadrée par deux crochets,
+ * un trait qui la sépare du corps de l'article, un crochet qui signe la galerie.
+ */
+function seedProjectStrokes(): number[][] {
+  const wrapper = document.querySelector("#contenu > div:first-child");
+  const card = wrapper?.querySelector(":scope > div") ?? null;
+  const heading = document.querySelector("#contenu h1");
+  if (!wrapper || !card || !heading) {
+    return [];
+  }
+
+  const wrapperBox = boxOf(wrapper);
+  const cardBox = boxOf(card);
+  const gutter = wrapperBox.left + 8;
+  const inGutter = cardBox.left - wrapperBox.left > 40;
+
+  const strokes: number[][] = [];
+
+  // 1. tiret dans la gouttière, au niveau du lien de retour
+  const back = document.querySelector('a[href="/#projets"]');
+  if (back && inGutter) {
+    const b = boxOf(back);
+    strokes.push([gutter, b.top - 2, gutter, b.bottom + 2]);
+  }
+
+  // 2. crochet dans la gouttière, au niveau de la fiche d'en-tête
+  if (inGutter) {
+    strokes.push(...cornerBracket(gutter, cardBox.top, 30, 1, 1));
+  }
+
+  // 3. trait pointillé sous la fiche d'en-tête, avant le corps de l'article
+  const nextSection = document.querySelector("#contenu > *:nth-child(2)");
+  if (nextSection) {
+    const separatorY = Math.round((cardBox.bottom + boxOf(nextSection).top) / 2);
+    strokes.push(...dashedRule(cardBox.left, cardBox.right, separatorY));
+    strokes.push([cardBox.left, separatorY, cardBox.left, separatorY + 13]);
+    strokes.push([cardBox.right, separatorY, cardBox.right, separatorY + 13]);
+  }
+
+  // 4. crochet bas-droite qui signe la galerie « l'application en images »
+  const galleryGrid = document.querySelector('section[aria-labelledby="galerie-titre"] ul');
+  if (galleryGrid) {
+    const g = boxOf(galleryGrid);
+    strokes.push(...cornerBracket(g.right + 16, g.bottom + 16, 32, -1, -1));
+  }
+
+  return strokes;
+}
+
 const CRAYON_CURSOR =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M3 21l3.5-1 11-11-2.5-2.5-11 11z' fill='%23e8dcb8' stroke='%231c1a17' stroke-width='1.3'/%3E%3Cpath d='M14.5 5.5l2.5 2.5 2-2a1.4 1.4 0 0 0 0-2l-.5-.5a1.4 1.4 0 0 0-2 0z' fill='%238a4a2c' stroke='%231c1a17' stroke-width='1.3'/%3E%3C/svg%3E\") 3 21, crosshair";
 
@@ -158,9 +209,11 @@ function fillFor(tool: DrawTool): string | null {
 export function PaperDraw(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cells = useRef<Map<string, string>>(new Map());
+  const seedKeys = useRef<Set<string>>(new Set());
   const isDrawing = useRef<boolean>(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
   const rafId = useRef<number | null>(null);
+  const { pathname } = useLocation();
   const [tool, setTool] = useState<DrawTool>("off");
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
 
@@ -237,23 +290,47 @@ export function PaperDraw(): JSX.Element {
     };
   }, [redraw, scheduleRedraw]);
 
-  // Amorce : annotations rouges mesurées sur le DOM de l'accueil. On attend le
-  // chargement des polices pour que les soulignés tombent juste. Idempotent
-  // (mêmes carreaux) donc sans garde ; éphémère (repart vierge au rechargement).
+  // Amorce : annotations rouges mesurées sur le DOM de la page courante. Elles
+  // changent d'une page à l'autre (accueil, fiche projet) pour garder du sens.
+  // Les carreaux dessinés au crayon sont conservés ; seule l'amorce est
+  // remplacée. On attend les polices pour que les soulignés tombent juste.
   useEffect(() => {
-    if (window.location.pathname !== "/") {
-      return;
+    // Retirer tout de suite l'amorce de la page précédente (mais pas les
+    // carreaux que l'utilisateur aurait repeints par-dessus).
+    let removedAny = false;
+    for (const key of seedKeys.current) {
+      if (cells.current.get(key) === SEED_FILL) {
+        cells.current.delete(key);
+        removedAny = true;
+      }
     }
+    seedKeys.current = new Set();
+    if (removedAny) {
+      redraw();
+    }
+
     let cancelled = false;
+    const strokesForPage = (): number[][] => {
+      if (pathname === "/") {
+        return seedHomeStrokes();
+      }
+      if (pathname.startsWith("/projets/")) {
+        return seedProjectStrokes();
+      }
+      return [];
+    };
     const applySeed = (): void => {
       if (cancelled) {
         return;
       }
-      for (const [x0, y0, x1, y1] of seedStrokes()) {
+      const nextKeys = new Set<string>();
+      for (const [x0, y0, x1, y1] of strokesForPage()) {
         for (const key of cellsOnSegment(x0, y0, x1, y1)) {
           cells.current.set(key, SEED_FILL);
+          nextKeys.add(key);
         }
       }
+      seedKeys.current = nextKeys;
       redraw();
     };
     const fontsReady = document.fonts?.ready ?? Promise.resolve();
@@ -262,7 +339,7 @@ export function PaperDraw(): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [redraw]);
+  }, [pathname, redraw]);
 
   const toDocumentPoint = (event: ReactPointerEvent): { x: number; y: number } => ({
     x: event.clientX + window.scrollX,
