@@ -222,10 +222,9 @@ const dpeSimplifie: Project = {
       caption: "Extraction, vulgarisation, génération",
     },
     change: {
-      src: "",
-      alt: "Rapport de DPE vulgarisé généré en PDF.",
-      caption: "Rapport vulgarisé généré",
-      placeholder: true,
+      src: "/screenshots/dpe-result.png",
+      alt: "Extrait du rapport vulgarisé généré : section « ce que vous pouvez faire », tableau des travaux prioritaires avec gain, coût et priorité.",
+      caption: "Le rapport vulgarisé, prêt pour le client",
     },
   },
   repoUrl: "https://github.com/QuentinCaffray/DPE_simplifier",

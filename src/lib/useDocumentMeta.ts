@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE_ORIGIN = "https://quentin-caffray.up.railway.app";
+const SITE_ORIGIN = "https://portfolio-production-e947.up.railway.app";
 
 interface DocumentMeta {
   title: string;
