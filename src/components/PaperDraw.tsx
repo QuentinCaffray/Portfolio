@@ -336,7 +336,7 @@ export function PaperDraw(): JSX.Element {
 
       <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2">
         {panelOpen ? (
-          <div className="flex items-center gap-1.5 border border-line bg-paper px-2 py-1.5 shadow-flat">
+          <div className="flex items-center gap-1.5 border border-line bg-paper px-2 py-1.5 shadow-flat-lg">
             {CRAYON_COLORS.map((color) => (
               <button
                 key={color.id}
@@ -378,27 +378,30 @@ export function PaperDraw(): JSX.Element {
           onClick={togglePencil}
           aria-pressed={active}
           aria-label={active ? "Ranger le crayon" : "Prendre un crayon pour colorier le tableau"}
-          className={`flex h-10 w-10 items-center justify-center border shadow-flat transition-colors ${
-            active ? "border-ink bg-ink text-paper" : "border-line bg-paper text-ink hover:border-ink"
+          className={`flex items-center gap-2 border px-3.5 py-2.5 font-mono text-[12px] uppercase tracking-mono shadow-flat-lg transition-colors ${
+            active
+              ? "border-ink bg-ink text-paper"
+              : "border-accent bg-accent text-paper hover:bg-accent-hover"
           }`}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M4 20l3.2-.9L18 8.3 15.7 6 4.9 16.8 4 20z"
               fill="currentColor"
               fillOpacity="0.25"
               stroke="currentColor"
-              strokeWidth="1.6"
+              strokeWidth="1.7"
               strokeLinejoin="round"
             />
             <path
               d="M15.7 6l2.3 2.3 1.6-1.6a1.3 1.3 0 000-1.8l-.5-.5a1.3 1.3 0 00-1.8 0L15.7 6z"
               fill="currentColor"
               stroke="currentColor"
-              strokeWidth="1.6"
+              strokeWidth="1.7"
               strokeLinejoin="round"
             />
           </svg>
+          {active ? "Ranger" : "Crayon"}
         </button>
       </div>
     </>
