@@ -15,56 +15,131 @@ const CRAYON_COLORS: { id: CrayonColorId; label: string; fill: string; swatch: s
 ];
 
 /** Couleur des traits d'amorce laissés sur le tableau au chargement. */
-const SEED_FILL = "rgba(190,46,38,0.32)";
+const SEED_FILL = "rgba(190,46,38,0.30)";
 
-/** Un carreau isolé, utilisé comme accent ponctuel. */
-function dot(x: number, y: number): number[] {
-  return [x, y, x, y];
+interface Box {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+}
+
+/** Boîte d'un élément, en coordonnées document. */
+function boxOf(element: Element): Box {
+  const rect = element.getBoundingClientRect();
+  return {
+    left: rect.left + window.scrollX,
+    top: rect.top + window.scrollY,
+    right: rect.right + window.scrollX,
+    bottom: rect.bottom + window.scrollY,
+    width: rect.width,
+  };
+}
+
+/** Boîte du texte contenu (et non de la boîte de l'élément), en doc. */
+function textBoxOf(element: Element): Box {
+  const range = document.createRange();
+  range.selectNodeContents(element);
+  const rect = range.getBoundingClientRect();
+  return {
+    left: rect.left + window.scrollX,
+    top: rect.top + window.scrollY,
+    right: rect.right + window.scrollX,
+    bottom: rect.bottom + window.scrollY,
+    width: rect.width,
+  };
+}
+
+/** Trait horizontal en pointillé (segments + interstices). */
+function dashedRule(x0: number, x1: number, y: number): number[][] {
+  const DASH = 50;
+  const GAP = 48;
+  const segments: number[][] = [];
+  for (let x = x0; x < x1 - 6; x += DASH + GAP) {
+    segments.push([x, y, Math.min(x + DASH, x1), y]);
+  }
+  return segments;
+}
+
+/** Souligné rouge sous le texte d'un élément (mesuré, pas la boîte). */
+function underlineOf(element: Element | null): number[][] {
+  if (!element) {
+    return [];
+  }
+  const text = textBoxOf(element);
+  if (text.width < 6) {
+    return [];
+  }
+  return [[text.left - 3, text.bottom + 7, text.right + 3, text.bottom + 7]];
+}
+
+/** Crochet d'angle en L ; `hx`/`hy` orientent les deux branches. */
+function cornerBracket(x: number, y: number, size: number, hx: 1 | -1, hy: 1 | -1): number[][] {
+  return [
+    [x, y, x + hx * size, y],
+    [x, y, x, y + hy * size],
+  ];
 }
 
 /**
- * Amorce du tableau : une composition abstraite de traits rouges dans les marges
- * de l'accueil. Vocabulaire orthogonal (colonnes, tirets, angles, carreaux
- * isolés) + une seule grande diagonale comme accent — net à la maille de 26px,
- * là où un faisceau de diagonales se souderait en aplat. Chaque élément reste
- * détaché. Tout tient dans les marges (coordonnées document) ; rien si la marge
- * est trop étroite (petit écran).
+ * Amorce du tableau : des annotations rouges qui commentent la page plutôt que
+ * de la décorer au hasard. Mesurées sur le DOM réel (donc justes à toute
+ * largeur) : la ligne qui sépare le hero des fiches, le soulignage des libellés
+ * de section, des crochets qui cadrent le badge de dispo et la rangée de fiches.
+ * Éphémère : repart vierge au rechargement.
  */
-function seedStrokes(viewportWidth: number): number[][] {
-  const contentWidth = Math.min(1180, viewportWidth - 40);
-  const sideMargin = (viewportWidth - contentWidth) / 2;
-  if (sideMargin < 80) {
+function seedStrokes(): number[][] {
+  const hero = document.querySelector("main > section");
+  const heading = document.querySelector("h1");
+  if (!hero || !heading) {
     return [];
   }
 
-  const band = Math.min(sideMargin - 12, 210); // largeur exploitable de marge
-  const left = 16; // origine dans la marge gauche
-  const right = viewportWidth - 16 - band; // origine dans la marge droite
+  const heroBox = boxOf(hero);
+  const headingBox = boxOf(heading);
+  const inset = headingBox.left - heroBox.left; // marge intérieure de la section
+  const contentLeft = heroBox.left + inset;
+  const contentRight = heroBox.right - inset;
 
-  return [
-    // ————— marge gauche : colonne + tirets, angle, accents —————
-    [left + band * 0.5, 150, left + band * 0.5, 452],
-    [left + band * 0.16, 178, left + band * 0.5, 178],
-    [left + band * 0.5, 426, left + band * 0.9, 426],
-    [left + band * 0.12, 648, left + band * 0.12, 726],
-    [left + band * 0.12, 726, left + band * 0.56, 726],
-    dot(left + band * 0.82, 258),
-    dot(left + band * 0.36, 556),
-    dot(left + band * 0.66, 832),
-    // ————— marge droite : diagonale accent, colonne + tiret, angle, accents —————
-    [right + band * 0.9, 150, right + band * 0.06, 470],
-    [right + band * 0.34, 566, right + band * 0.34, 858],
-    [right + band * 0.34, 592, right + band * 0.82, 592],
-    [right + band * 0.5, 1044, right + band, 1044],
-    [right + band * 0.5, 1044, right + band * 0.5, 1120],
-    dot(right + band * 0.68, 320),
-    dot(right + band * 0.14, 700),
-    dot(right + band * 0.86, 1180),
-    // ————— bas, en marge de « à propos » —————
-    [right + band * 0.36, 1712, right + band * 0.36, 1900],
-    [right + band * 0.36, 1900, right + band * 0.82, 1900],
-    dot(right + band * 0.14, 1788),
-  ];
+  const tableauLabel = document.querySelector("#projets span");
+  const aboutLabel = document.querySelector("#a-propos-titre");
+  const deck = document.querySelector("#projets ul");
+  const badge = document.querySelector("main > section aside > span");
+
+  const strokes: number[][] = [];
+
+  // 1. la ligne (pointillé) qui sépare le texte des fiches, avec crochets aux bouts
+  const labelTop = tableauLabel ? boxOf(tableauLabel).top : heroBox.bottom + 44;
+  const separatorY = Math.round((heroBox.bottom + labelTop) / 2);
+  strokes.push(...dashedRule(contentLeft, contentRight, separatorY));
+  strokes.push([contentLeft, separatorY, contentLeft, separatorY + 13]);
+  strokes.push([contentRight, separatorY, contentRight, separatorY + 13]);
+
+  // 2. crochet dans la gouttière, au niveau du titre (le cadre)
+  if (inset > 40) {
+    strokes.push(...cornerBracket(heroBox.left + 8, headingBox.top, 30, 1, 1));
+  }
+
+  // 3. soulignage de « À propos » (donne à lire la structure de la page)
+  strokes.push(...underlineOf(aboutLabel));
+
+  // 4. crochet bas-droite qui signe la rangée de fiches
+  if (deck) {
+    const d = boxOf(deck);
+    strokes.push(...cornerBracket(d.right + 16, d.bottom + 16, 32, -1, -1));
+  }
+
+  // 5. crochets autour du badge de disponibilité (repère pour l'œil du recruteur)
+  if (badge) {
+    const b = boxOf(badge);
+    if (b.width > 0) {
+      strokes.push(...cornerBracket(b.left - 11, b.top - 11, 24, 1, 1));
+      strokes.push(...cornerBracket(b.right + 11, b.bottom + 11, 24, -1, -1));
+    }
+  }
+
+  return strokes;
 }
 
 const CRAYON_CURSOR =
@@ -162,19 +237,31 @@ export function PaperDraw(): JSX.Element {
     };
   }, [redraw, scheduleRedraw]);
 
-  // Amorce : quelques traits de crayon rouge sur l'accueil, au montage, pour
-  // donner du relief. Idempotent (mêmes carreaux) donc sans garde. Éphémère :
-  // repart vierge au rechargement.
+  // Amorce : annotations rouges mesurées sur le DOM de l'accueil. On attend le
+  // chargement des polices pour que les soulignés tombent juste. Idempotent
+  // (mêmes carreaux) donc sans garde ; éphémère (repart vierge au rechargement).
   useEffect(() => {
     if (window.location.pathname !== "/") {
       return;
     }
-    for (const [x0, y0, x1, y1] of seedStrokes(window.innerWidth)) {
-      for (const key of cellsOnSegment(x0, y0, x1, y1)) {
-        cells.current.set(key, SEED_FILL);
+    let cancelled = false;
+    const applySeed = (): void => {
+      if (cancelled) {
+        return;
       }
-    }
-    redraw();
+      for (const [x0, y0, x1, y1] of seedStrokes()) {
+        for (const key of cellsOnSegment(x0, y0, x1, y1)) {
+          cells.current.set(key, SEED_FILL);
+        }
+      }
+      redraw();
+    };
+    const fontsReady = document.fonts?.ready ?? Promise.resolve();
+    const timeout = new Promise<void>((resolve) => window.setTimeout(resolve, 600));
+    void Promise.race([fontsReady, timeout]).then(applySeed);
+    return () => {
+      cancelled = true;
+    };
   }, [redraw]);
 
   const toDocumentPoint = (event: ReactPointerEvent): { x: number; y: number } => ({
