@@ -1,0 +1,37 @@
+# Portfolio — service statique derrière le proxy Railway (TLS terminé en amont).
+{
+	admin off
+	persist_config off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	root * /srv
+	encode gzip zstd
+
+	# En-têtes de sécurité (posture OWASP — site statique, pas d'auth)
+	header {
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; object-src 'none'; upgrade-insecure-requests"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	# Actifs versionnés (hash dans le nom) : cache long et immuable.
+	# Matcher évalué sur le chemin d'origine (avant le fallback SPA).
+	@immutable path /assets/* /fonts/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+
+	# Tout le reste (HTML, /, routes profondes, screenshots) : revalidation systématique.
+	@revalidate not path /assets/* /fonts/*
+	header @revalidate Cache-Control "no-cache"
+
+	# SPA : toute route inconnue retombe sur index.html
+	try_files {path} /index.html
+	file_server
+}

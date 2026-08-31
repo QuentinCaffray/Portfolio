@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ */
+/* Polices auto-hébergées — zéro requête tierce (CSP stricte + RGPD)   */
+/* ------------------------------------------------------------------ */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/fonts/bricolage-grotesque-latin.woff2") format("woff2");
+  font-weight: 400 800;
+  font-stretch: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Sans";
+  src: url("/fonts/instrument-sans-latin.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  font-weight: 400 500;
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus clavier visible et cohérent partout */
+  :focus-visible {
+    outline: 2px solid theme("colors.accent.DEFAULT");
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  ::selection {
+    background: theme("colors.accent.DEFAULT");
+    color: theme("colors.paper.DEFAULT");
+  }
+}
+
+@layer components {
+  /* Fond « papier quadrillé » du handoff : couleur + double grille */
+  .bg-paper-grid {
+    background-color: theme("colors.board");
+    background-image: theme("backgroundImage.grid");
+    background-size: theme("backgroundSize.grid-mobile");
+  }
+
+  @media (min-width: 900px) {
+    .bg-paper-grid {
+      background-size: theme("backgroundSize.grid");
+    }
+  }
+
+  /* Étiquette mono en capitales, taille plancher 11px (correction handoff #5) */
+  .label-mono {
+    @apply font-mono text-[11px] uppercase tracking-mono text-mono;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
