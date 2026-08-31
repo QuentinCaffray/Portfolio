@@ -1,11 +1,12 @@
 import { Navigate, useParams } from "react-router-dom";
-import { getProject, type Project } from "@/content/projects";
+import { getProject, type Project, type ProjectScreenshot } from "@/content/projects";
 import { useDocumentMeta } from "@/lib/useDocumentMeta";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { BackBar } from "@/components/project/BackBar";
 import { ProjectHeader } from "@/components/project/ProjectHeader";
 import { TechnicalCallout } from "@/components/project/TechnicalCallout";
 import { AlternatingBlock } from "@/components/project/AlternatingBlock";
+import { ProjectGallery } from "@/components/project/ProjectGallery";
 import { NextProjectNav } from "@/components/project/NextProjectNav";
 
 export function ProjectPage(): JSX.Element {
@@ -19,12 +20,20 @@ export function ProjectPage(): JSX.Element {
   return <ProjectView key={project.slug} project={project} />;
 }
 
+function isZoomable(shot: ProjectScreenshot): boolean {
+  return shot.placeholder !== true && shot.src !== "";
+}
+
 function ProjectView({ project }: { project: Project }): JSX.Element {
   useDocumentMeta({
     title: `${project.name} — ${project.meta.contexte} · Quentin Caffray`,
     description: project.summary,
     path: `/projets/${project.slug}`,
   });
+
+  const { demande, change } = project.screenshots;
+  // Série complète parcourable dans la lightbox : blocs puis galerie.
+  const lightboxItems = [demande, change, ...project.gallery].filter(isZoomable);
 
   return (
     <>
@@ -35,17 +44,22 @@ function ProjectView({ project }: { project: Project }): JSX.Element {
         <AlternatingBlock
           label="Ce que ça a demandé"
           body={project.blocks.demande}
-          screenshot={project.screenshots.demande}
+          screenshot={demande}
           mediaSide="left"
           rotation={-0.3}
+          lightboxItems={lightboxItems}
+          lightboxIndex={lightboxItems.indexOf(demande)}
         />
         <AlternatingBlock
           label="Ce que ça a changé"
           body={project.blocks.change}
-          screenshot={project.screenshots.change}
+          screenshot={change}
           mediaSide="right"
           rotation={0.35}
+          lightboxItems={lightboxItems}
+          lightboxIndex={lightboxItems.indexOf(change)}
         />
+        <ProjectGallery screenshots={project.gallery} lightboxItems={lightboxItems} />
       </main>
       <NextProjectNav nextSlug={project.next} />
       <SiteFooter />

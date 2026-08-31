@@ -8,6 +8,8 @@ interface AlternatingBlockProps {
   /** "left" = capture à gauche du texte, "right" = capture à droite. */
   mediaSide: "left" | "right";
   rotation?: number;
+  lightboxItems?: ProjectScreenshot[] | undefined;
+  lightboxIndex?: number | undefined;
 }
 
 /**
@@ -21,6 +23,8 @@ export function AlternatingBlock({
   screenshot,
   mediaSide,
   rotation = 0,
+  lightboxItems,
+  lightboxIndex = 0,
 }: AlternatingBlockProps): JSX.Element {
   const hasMedia = screenshot.placeholder !== true && screenshot.src !== "";
 
@@ -41,7 +45,13 @@ export function AlternatingBlock({
 
   const media = (
     <div className="bp:flex-[1.6]">
-      <Screenshot screenshot={screenshot} sizeClass="aspect-[16/10]" rotation={rotation} />
+      <Screenshot
+        screenshot={screenshot}
+        sizeClass="aspect-[16/10]"
+        rotation={rotation}
+        lightboxItems={lightboxItems}
+        lightboxIndex={lightboxIndex}
+      />
     </div>
   );
 

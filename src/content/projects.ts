@@ -23,8 +23,10 @@ export interface ProjectScreenshot {
   caption: string;
   /** true = capture pas encore disponible, on affiche un cadre neutre */
   placeholder?: boolean;
-  /** `object-position` du cadrage (ex. "left 28%") pour la vignette de fiche */
+  /** `object-position` du cadrage quand `fit === "cover"` (ex. "left 28%") */
   focus?: string;
+  /** surcharge le cadrage par défaut du composant : "contain" (entière) ou "cover" (recadrée) */
+  fit?: "cover" | "contain";
 }
 
 export interface Project {
@@ -47,6 +49,8 @@ export interface Project {
     demande: ProjectScreenshot;
     change: ProjectScreenshot;
   };
+  /** Captures supplémentaires, montrées dans la galerie de la page projet. */
+  gallery: ProjectScreenshot[];
   repoUrl: string;
   next: ProjectSlug;
 }
@@ -97,7 +101,7 @@ const laPopote: Project = {
       caption: "Tableau de bord — trésorerie et cotisations",
     },
     demande: {
-      src: "/screenshots/la-popote-operations.png",
+      src: "/screenshots/la-popote-operations.jpg",
       alt: "Liste des dernières opérations de la caisse : consommations et dépenses, membre et date.",
       caption: "Historique des opérations",
     },
@@ -107,6 +111,23 @@ const laPopote: Project = {
       caption: "Administration — cotisations et relances",
     },
   },
+  gallery: [
+    {
+      src: "/screenshots/la-popote-consommations.jpg",
+      alt: "Écran de saisie des consommations : grille de produits avec prix, saisie à l'unité pour soi ou un invité.",
+      caption: "Enregistrer une consommation",
+    },
+    {
+      src: "/screenshots/la-popote-depenses.jpg",
+      alt: "Dépenses personnelles : formulaire de demande de remboursement avec photo de ticket, et demandes en attente de validation.",
+      caption: "Demande de remboursement",
+    },
+    {
+      src: "/screenshots/la-popote-evenements.jpg",
+      alt: "Onglet événements : liste des repas d'équipe avec date, nombre de participants et budget.",
+      caption: "Événements repas",
+    },
+  ],
   repoUrl: "https://github.com/QuentinCaffray/la-popote-fund",
   next: "the-crew",
 };
@@ -154,7 +175,6 @@ const theCrew: Project = {
       src: "/screenshots/the-crew-dashboard.jpg",
       alt: "Tableau de bord de The Crew : classement du mois par indicateur de vente, avec barres proportionnelles à la couleur de chaque vendeur.",
       caption: "Tableau de bord — classement du mois",
-      focus: "left 30%",
     },
     demande: {
       src: "/screenshots/the-crew-objectifs.jpg",
@@ -167,6 +187,23 @@ const theCrew: Project = {
       caption: "Tâches de boutique",
     },
   },
+  gallery: [
+    {
+      src: "/screenshots/the-crew-jour-equipe.jpg",
+      alt: "Objectifs du jour, vue équipe : pour chaque indicateur une jauge empilée où chaque segment est la contribution d'un vendeur, à sa couleur.",
+      caption: "Pointage du jour — vue équipe",
+    },
+    {
+      src: "/screenshots/the-crew-historique.jpg",
+      alt: "Calendrier d'historique des tâches faites : les jours avec activité sont marqués, le détail d'un jour est en lecture seule.",
+      caption: "Historique — calendrier figé",
+    },
+    {
+      src: "/screenshots/the-crew-suivi.jpg",
+      alt: "Espace de suivi encadrement : note de coaching partagée avec le vendeur, note privée direction, challenges en cours.",
+      caption: "Suivi individuel — notes de coaching",
+    },
+  ],
   repoUrl: "https://github.com/QuentinCaffray/VDB-Orange",
   next: "dpe-simplifie",
 };
@@ -227,6 +264,28 @@ const dpeSimplifie: Project = {
       caption: "Le rapport vulgarisé, prêt pour le client",
     },
   },
+  gallery: [
+    {
+      src: "/screenshots/dpe-processing.jpg",
+      alt: "Écran de traitement : barre de progression et les trois étapes — extraction, vulgarisation, génération du PDF.",
+      caption: "Le traitement, étape par étape",
+    },
+    {
+      src: "/screenshots/dpe-rapport-synthese.png",
+      alt: "Première page du rapport généré : en-tête, synthèse du diagnostic et coût annuel estimé.",
+      caption: "Rapport généré — synthèse",
+    },
+    {
+      src: "/screenshots/dpe-rapport-etat.png",
+      alt: "Page du rapport généré : description du bien et état du logement poste par poste, en tableau lisible.",
+      caption: "Rapport généré — état du logement",
+    },
+    {
+      src: "/screenshots/dpe-result-screen.jpg",
+      alt: "Écran de fin : le PDF simplifié est prêt, bouton de téléchargement et rappel de vérifier avant envoi au client.",
+      caption: "Le PDF prêt à envoyer",
+    },
+  ],
   repoUrl: "https://github.com/QuentinCaffray/DPE_simplifier",
   next: "la-popote",
 };

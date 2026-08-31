@@ -48,11 +48,12 @@ export function ProjectCard({
         aria-hidden="true"
       />
 
-      <div className="border-b border-line bg-[rgba(28,26,23,0.06)]">
+      <div className="border-b border-line bg-[#e9e4d8]">
         <Screenshot
           screenshot={project.screenshots.card}
-          sizeClass="h-44"
+          sizeClass="h-48"
           variant="bare"
+          fit="contain"
           eager
         />
       </div>

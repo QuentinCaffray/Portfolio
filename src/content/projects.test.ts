@@ -37,4 +37,24 @@ describe("contenu des projets", () => {
       }
     }
   });
+
+  it("a une galerie non vide, avec src et alt sur chaque capture affichable", () => {
+    for (const project of projects) {
+      expect(project.gallery.length).toBeGreaterThan(0);
+      const allShots = [
+        project.screenshots.card,
+        project.screenshots.demande,
+        project.screenshots.change,
+        ...project.gallery,
+      ];
+      for (const shot of allShots) {
+        if (shot.placeholder) {
+          continue;
+        }
+        expect(shot.src).toMatch(/^\/screenshots\/.+\.(png|jpg)$/);
+        expect(shot.alt.length).toBeGreaterThan(10);
+        expect(shot.caption.length).toBeGreaterThan(0);
+      }
+    }
+  });
 });
