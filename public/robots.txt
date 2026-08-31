@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://portfolio-production-e947.up.railway.app/sitemap.xml
+Sitemap: https://portfolio-eslabs.up.railway.app/sitemap.xml

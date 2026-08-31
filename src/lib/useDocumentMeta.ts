@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 
-const SITE_ORIGIN = "https://portfolio-production-e947.up.railway.app";
+// Origine réelle au runtime : robuste à un changement de domaine Railway.
+// Repli sur le domaine de production pour les rendus hors navigateur.
+const FALLBACK_ORIGIN = "https://portfolio-eslabs.up.railway.app";
+const SITE_ORIGIN =
+  typeof window !== "undefined" && window.location.origin.startsWith("http")
+    ? window.location.origin
+    : FALLBACK_ORIGIN;
 
 interface DocumentMeta {
   title: string;
