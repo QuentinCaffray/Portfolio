@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent, PointerEvent } from "react";
 import { usePrefersReducedMotion } from "@/lib/usePrefersReducedMotion";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 /** En-deçà de ce déplacement, l'interaction est un clic, pas un glisser. */
 const CLICK_THRESHOLD_PX = 4;
@@ -40,10 +41,13 @@ interface DraggableCards {
  * - `pointerdown/move/up`, pas de drag & drop HTML5.
  * - Déplacement cumulatif mémorisé par fiche, léger tilt aléatoire au dépôt.
  * - Sous le seuil de 4px, la navigation du <Link> est laissée passer.
- * - `prefers-reduced-motion` : glisser désactivé, fiches immobiles.
+ * - Glisser désactivé si `prefers-reduced-motion` ou si le pointeur est tactile
+ *   (sinon le swipe de défilement attrape les fiches sur mobile).
  */
 export function useDraggableCards(initialRotations: readonly number[]): DraggableCards {
   const prefersReducedMotion = usePrefersReducedMotion();
+  const isCoarsePointer = useMediaQuery("(pointer: coarse)");
+  const dragDisabled = prefersReducedMotion || isCoarsePointer;
 
   const elements = useRef<Map<number, HTMLElement>>(new Map());
   const positions = useRef<Map<number, Position>>(new Map());
@@ -93,19 +97,19 @@ export function useDraggableCards(initialRotations: readonly number[]): Draggabl
         if (!angles.current.has(index)) {
           angles.current.set(index, initialAngleFor(index));
         }
-        if (!prefersReducedMotion) {
+        if (!dragDisabled) {
           paint(index, positions.current.get(index)!, angles.current.get(index)!, false);
         }
       };
       refCallbacks.current.set(index, callback);
       return callback;
     },
-    [initialAngleFor, paint, prefersReducedMotion],
+    [initialAngleFor, paint, dragDisabled],
   );
 
   const handlePointerDown = useCallback(
     (index: number, event: PointerEvent<HTMLElement>): void => {
-      if (prefersReducedMotion || event.button !== 0) {
+      if (dragDisabled || event.button !== 0) {
         return;
       }
       const element = elements.current.get(index);
@@ -164,7 +168,7 @@ export function useDraggableCards(initialRotations: readonly number[]): Draggabl
       window.addEventListener("pointerup", handleUp);
       teardownActiveDrag.current = detach;
     },
-    [initialAngleFor, paint, prefersReducedMotion],
+    [initialAngleFor, paint, dragDisabled],
   );
 
   const handleClickCapture = useCallback((event: MouseEvent<HTMLElement>): void => {
@@ -181,7 +185,7 @@ export function useDraggableCards(initialRotations: readonly number[]): Draggabl
    */
   const handleHover = useCallback(
     (index: number, hovering: boolean): void => {
-      if (prefersReducedMotion || draggingIndex.current !== null) {
+      if (dragDisabled || draggingIndex.current !== null) {
         return;
       }
       const element = elements.current.get(index);
@@ -199,7 +203,7 @@ export function useDraggableCards(initialRotations: readonly number[]): Draggabl
         element.style.boxShadow = "";
       }
     },
-    [initialAngleFor, prefersReducedMotion],
+    [initialAngleFor, dragDisabled],
   );
 
   const reset = useCallback((): void => {
@@ -221,12 +225,12 @@ export function useDraggableCards(initialRotations: readonly number[]): Draggabl
       onPointerEnter: () => handleHover(index, true),
       onPointerLeave: () => handleHover(index, false),
       onClickCapture: handleClickCapture,
-      style: prefersReducedMotion
+      style: dragDisabled
         ? {}
         : { touchAction: "none", willChange: "transform" },
     }),
-    [getRefCallback, handleClickCapture, handleHover, handlePointerDown, prefersReducedMotion],
+    [getRefCallback, handleClickCapture, handleHover, handlePointerDown, dragDisabled],
   );
 
-  return { getCardProps, reset, hasMoved, interactive: !prefersReducedMotion };
+  return { getCardProps, reset, hasMoved, interactive: !dragDisabled };
 }

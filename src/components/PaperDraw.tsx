@@ -22,82 +22,90 @@ function fillFor(tool: DrawTool): string | null {
 
 /**
  * Le fond est un tableau : on peut prendre un crayon et colorier les carreaux.
- * Deux couches : un canvas de rendu derrière le contenu (les carreaux coloriés
- * font partie du papier) et, quand l'outil est pris, une surface de capture
- * transparente au-dessus qui reçoit le clic-glissé. Outil éteint par défaut
- * (le site fonctionne normalement), dessin éphémère.
+ * Le canvas est `fixed` (jamais dans le flux, n'affecte pas la hauteur de page)
+ * et se repeint au scroll ; les carreaux sont mémorisés en coordonnées document.
+ * Outil éteint par défaut, couche de capture séparée quand actif, dessin éphémère.
  */
 export function PaperDraw(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cells = useRef<Map<string, string>>(new Map());
   const isDrawing = useRef<boolean>(false);
   const lastPoint = useRef<{ x: number; y: number } | null>(null);
+  const rafId = useRef<number | null>(null);
   const [tool, setTool] = useState<DrawTool>("off");
   const [panelOpen, setPanelOpen] = useState<boolean>(false);
 
   const active = tool !== "off";
 
-  const redrawAll = useCallback(() => {
+  const redraw = useCallback(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) {
       return;
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const offsetX = window.scrollX;
+    const offsetY = window.scrollY;
     cells.current.forEach((fill, key) => {
       const [column, row] = key.split(",").map(Number);
+      const x = column * GRID_CELL - offsetX;
+      const y = row * GRID_CELL - offsetY;
+      if (x > canvas.width || y > canvas.height || x + GRID_CELL < 0 || y + GRID_CELL < 0) {
+        return;
+      }
       ctx.fillStyle = fill;
-      ctx.fillRect(column * GRID_CELL, row * GRID_CELL, GRID_CELL, GRID_CELL);
+      ctx.fillRect(x, y, GRID_CELL, GRID_CELL);
     });
   }, []);
 
-  const drawCell = useCallback((key: string, currentTool: DrawTool) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!ctx) {
+  const scheduleRedraw = useCallback(() => {
+    if (rafId.current !== null) {
       return;
     }
-    const [column, row] = key.split(",").map(Number);
-    const x = column * GRID_CELL;
-    const y = row * GRID_CELL;
-    if (currentTool === "eraser") {
-      cells.current.delete(key);
-      ctx.clearRect(x, y, GRID_CELL, GRID_CELL);
-      return;
-    }
-    const fill = fillFor(currentTool);
-    if (!fill) {
-      return;
-    }
-    cells.current.set(key, fill);
-    ctx.fillStyle = fill;
-    ctx.fillRect(x, y, GRID_CELL, GRID_CELL);
-  }, []);
+    rafId.current = window.requestAnimationFrame(() => {
+      rafId.current = null;
+      redraw();
+    });
+  }, [redraw]);
 
-  // Le canvas de rendu couvre toute la hauteur du document.
+  const applyCell = useCallback(
+    (key: string, currentTool: DrawTool) => {
+      if (currentTool === "eraser") {
+        cells.current.delete(key);
+      } else {
+        const fill = fillFor(currentTool);
+        if (!fill) {
+          return;
+        }
+        cells.current.set(key, fill);
+      }
+      scheduleRedraw();
+    },
+    [scheduleRedraw],
+  );
+
+  // Canvas fixe, dimensionné sur le viewport.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
     const resize = (): void => {
-      const width = document.documentElement.clientWidth;
-      const height = Math.max(document.documentElement.scrollHeight, window.innerHeight);
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-        redrawAll();
-      }
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      redraw();
     };
     resize();
-    const observer = new ResizeObserver(resize);
-    observer.observe(document.body);
     window.addEventListener("resize", resize);
+    window.addEventListener("scroll", scheduleRedraw, { passive: true });
     return () => {
-      observer.disconnect();
       window.removeEventListener("resize", resize);
+      window.removeEventListener("scroll", scheduleRedraw);
+      if (rafId.current !== null) {
+        window.cancelAnimationFrame(rafId.current);
+      }
     };
-  }, [redrawAll]);
+  }, [redraw, scheduleRedraw]);
 
   const toDocumentPoint = (event: ReactPointerEvent): { x: number; y: number } => ({
     x: event.clientX + window.scrollX,
@@ -113,7 +121,7 @@ export function PaperDraw(): JSX.Element {
     event.currentTarget.setPointerCapture(event.pointerId);
     const point = toDocumentPoint(event);
     lastPoint.current = point;
-    drawCell(cellKey(point.x, point.y), tool);
+    applyCell(cellKey(point.x, point.y), tool);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>): void => {
@@ -123,7 +131,7 @@ export function PaperDraw(): JSX.Element {
     const point = toDocumentPoint(event);
     const previous = lastPoint.current ?? point;
     for (const key of cellsOnSegment(previous.x, previous.y, point.x, point.y)) {
-      drawCell(key, tool);
+      applyCell(key, tool);
     }
     lastPoint.current = point;
   };
@@ -136,7 +144,7 @@ export function PaperDraw(): JSX.Element {
 
   const clearAll = (): void => {
     cells.current.clear();
-    redrawAll();
+    redraw();
   };
 
   const togglePencil = (): void => {
@@ -151,7 +159,11 @@ export function PaperDraw(): JSX.Element {
 
   return (
     <>
-      <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 z-0" />
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed left-0 top-0 z-0"
+      />
 
       {active ? (
         <div
