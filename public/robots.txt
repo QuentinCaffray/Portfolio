@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://portfolio-eslabs.up.railway.app/sitemap.xml
+Sitemap: https://www.portfolio.eslabs.fr/sitemap.xml

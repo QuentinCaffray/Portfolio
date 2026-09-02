@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://portfolio-eslabs.up.railway.app/</loc>
+    <loc>https://www.portfolio.eslabs.fr/</loc>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://portfolio-eslabs.up.railway.app/projets/la-popote</loc>
+    <loc>https://www.portfolio.eslabs.fr/projets/la-popote</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://portfolio-eslabs.up.railway.app/projets/the-crew</loc>
+    <loc>https://www.portfolio.eslabs.fr/projets/the-crew</loc>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://portfolio-eslabs.up.railway.app/projets/dpe-simplifie</loc>
+    <loc>https://www.portfolio.eslabs.fr/projets/dpe-simplifie</loc>
     <priority>0.8</priority>
   </url>
 </urlset>

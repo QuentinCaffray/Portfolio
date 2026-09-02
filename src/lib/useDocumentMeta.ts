@@ -1,12 +1,9 @@
 import { useEffect } from "react";
 
-// Origine réelle au runtime : robuste à un changement de domaine Railway.
-// Repli sur le domaine de production pour les rendus hors navigateur.
-const FALLBACK_ORIGIN = "https://portfolio-eslabs.up.railway.app";
-const SITE_ORIGIN =
-  typeof window !== "undefined" && window.location.origin.startsWith("http")
-    ? window.location.origin
-    : FALLBACK_ORIGIN;
+// Domaine de production : les URL canoniques et Open Graph pointent toujours
+// ici, quel que soit l'hôte d'accès (domaine Railway, prévisualisation, local),
+// pour consolider le référencement sur une seule adresse.
+const SITE_ORIGIN = "https://www.portfolio.eslabs.fr";
 
 interface DocumentMeta {
   title: string;
